@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ledger · ECN 141 Macroeconomics</title>
+<style>
+  :root{
+    --paper:#FAF6EC;
+    --paper-dim:#F2ECDC;
+    --ink:#1E2422;
+    --ink-soft:#4B564F;
+    --teal:#0F3D3E;
+    --teal-deep:#0A2C2D;
+    --teal-tint:#E4EEE9;
+    --gold:#B8863C;
+    --gold-soft:#E9D6AE;
+    --good:#2F6B4F;
+    --good-bg:#E2EFE3;
+    --bad:#9C3B2A;
+    --bad-bg:#F5E3DD;
+    --rule:#D9D0B8;
+    --radius:3px;
+    --serif: "Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,"Times New Roman",serif;
+    --sans: -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:var(--gold-soft);}
+
+  /* ---------- App shell ---------- */
+  #app{max-width:840px;margin:0 auto;min-height:100vh;position:relative;padding-top:76px;}
+
+  /* Masthead */
+  .masthead{
+    background:var(--teal);
+    color:var(--paper);
+    padding:22px 20px 18px;
+    position:relative;
+    border-bottom:4px solid var(--gold);
+  }
+  .masthead-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .masthead-mark{
+    font-family:var(--serif);
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--gold-soft);
+    text-transform:uppercase;
+  }
+  .masthead-num{
+    font-family:var(--serif);
+    font-size:12px;
+    color:rgba(250,246,236,.6);
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:30px;
+    line-height:1.18;
+    margin:8px 0 4px;
+    letter-spacing:.01em;
+  }
+  .masthead p.sub{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:15px;
+    color:rgba(250,246,236,.78);
+    margin:0;
+  }
+  .masthead-stats{
+    display:flex;
+    gap:0;
+    margin-top:16px;
+    border-top:1px solid rgba(250,246,236,.18);
+    padding-top:12px;
+  }
+  .mstat{flex:1;padding-right:14px;}
+  .mstat + .mstat{border-left:1px solid rgba(250,246,236,.18);padding-left:14px;}
+  .mstat .n{font-family:var(--serif);font-size:22px;line-height:1;}
+  .mstat .l{font-size:10.5px;color:rgba(250,246,236,.62);margin-top:4px;}
+
+  /* ---------- Section wrap ---------- */
+  .wrap{padding:18px 18px 8px;}
+  .rule-title{
+    display:flex;align-items:center;gap:10px;
+    margin:26px 0 12px;
+  }
+  .rule-title span{
+    font-family:var(--serif);
+    font-size:13px;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .rule-title::after{content:"";flex:1;height:1px;background:var(--rule);}
+
+  /* ---------- Progress ledger row ---------- */
+  .ledger-row{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--paper-dim);
+    border:1px solid var(--rule);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .ledger-row .lbl{font-size:13px;color:var(--ink-soft);}
+  .ledger-row .val{font-family:var(--serif);font-size:19px;}
+
+  /* ---------- Session list ---------- */
+  .session-card{
+    border:1px solid var(--rule);
+    background:#fff;
+    border-radius:var(--radius);
+    margin-bottom:12px;
+    overflow:hidden;
+  }
+  .session-head{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:15px 16px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .session-num{
+    font-family:var(--serif);
+    font-size:20px;
+    color:var(--gold);
+    min-width:26px;
+    line-height:1.2;
+  }
+  .session-titles{flex:1;min-width:0;}
+  .session-titles h3{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:17px;
+    margin:0 0 3px;
+    color:var(--teal-deep);
+    line-height:1.3;
+  }
+  .session-titles p{
+    margin:0;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.45;
+  }
+  .session-meta{
+    display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;
+  }
+  .pill{
+    font-size:10.5px;
+    padding:3px 8px;
+    border-radius:20px;
+    border:1px solid var(--rule);
+    color:var(--ink-soft);
+    background:var(--paper-dim);
+  }
+  .pill.done{background:var(--good-bg);border-color:var(--good);color:var(--good);}
+  .chev{
+    color:var(--ink-soft);
+    font-size:14px;
+    padding-top:3px;
+    transition:transform .18s ease;
+  }
+  .session-card.open .chev{transform:rotate(90deg);}
+
+  .session-body{
+    display:none;
+    padding:0 16px 18px;
+    border-top:1px solid var(--rule);
+  }
+  .session-card.open .session-body{display:block;}
+
+  .outcomes{margin:14px 0;padding:0;list-style:none;}
+  .outcomes li{
+    font-size:13.5px;
+    color:var(--ink);
+    padding:6px 0 6px 20px;
+    position:relative;
+    line-height:1.45;
+    border-bottom:1px dashed var(--rule);
+  }
+  .outcomes li:last-child{border-bottom:none;}
+  .outcomes li::before{
+    content:"—";
+    position:absolute;left:0;top:6px;
+    color:var(--gold);
+  }
+
+  .notes-block{
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.72;
+    color:var(--ink);
+    white-space:pre-line;
+    background:var(--paper);
+    border-left:3px solid var(--gold);
+    padding:2px 16px;
+    margin:14px 0;
+  }
+
+  .saq{
+    margin:10px 0;
+    padding:12px 14px;
+    background:var(--teal-tint);
+    border-radius:var(--radius);
+  }
+  .saq .q{font-size:13.5px;font-weight:600;color:var(--teal-deep);margin-bottom:6px;}
+  .saq .a{font-size:13px;color:var(--ink-soft);line-height:1.55;display:none;}
+  .saq.open .a{display:block;}
+  .saq .toggle{
+    font-size:11.5px;color:var(--gold);cursor:pointer;text-decoration:underline;
+    margin-top:6px;display:inline-block;
+  }
+
+  .btn-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .btn{
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:600;
+    padding:11px 16px;
+    border-radius:var(--radius);
+    border:1px solid transparent;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-primary{background:var(--teal);color:var(--paper);}
+  .btn-primary:active{background:var(--teal-deep);}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--teal);border-color:var(--teal);}
+  .btn-block{width:100%;justify-content:center;}
+  .btn:disabled{opacity:.45;}
+
+  .last-attempt{font-size:12px;color:var(--ink-soft);margin-top:10px;}
+  .last-attempt b{color:var(--ink);}
+
+  /* ---------- Bottom nav ---------- */
+  .tabbar{
+    position:fixed;top:0;left:0;right:0;
+    max-width:840px;margin:0 auto;
+    background:var(--teal);
+    display:flex;
+    border-bottom:3px solid var(--gold);
+    z-index:40;
+  }
+  .tab{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:10px 4px 9px;
+    color:rgba(250,246,236,.55);
+    font-size:10.5px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tab svg{width:20px;height:20px;}
+  .tab.active{color:var(--paper);}
+  .tab.active svg{filter:drop-shadow(0 0 0 var(--gold));}
+
+  /* ---------- Quiz mode ---------- */
+  #quizScreen{display:none;position:fixed;inset:0;background:var(--paper);z-index:60;flex-direction:column;}
+  #quizScreen.active{display:flex;}
+  .quiz-top{
+    background:var(--teal);color:var(--paper);
+    padding:14px 18px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .quiz-top .exit{font-size:20px;cursor:pointer;color:var(--paper);background:none;border:none;padding:4px;}
+  .quiz-top .title{font-family:var(--serif);font-size:14px;}
+  .quiz-top .timer{
+    font-family:var(--serif);font-size:17px;
+    background:rgba(0,0,0,.18);
+    padding:4px 10px;border-radius:20px;
+  }
+  .quiz-top .timer.low{color:#FFD9CC;background:rgba(156,59,42,.4);}
+  .progress-track{height:4px;background:rgba(255,255,255,.12);}
+  .progress-fill{height:100%;background:var(--gold);width:0%;transition:width .2s;}
+
+  .quiz-body{flex:1;overflow-y:auto;padding:22px 20px 100px;}
+  .qcounter{font-size:12px;color:var(--ink-soft);letter-spacing:.04em;margin-bottom:10px;}
+  .qtext{font-family:var(--serif);font-size:19px;line-height:1.42;color:var(--ink);margin-bottom:20px;}
+  .opt{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:14px 14px;
+    border:1.5px solid var(--rule);
+    border-radius:var(--radius);
+    margin-bottom:10px;
+    cursor:pointer;
+    background:#fff;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opt .letter{
+    font-family:var(--serif);
+    width:24px;height:24px;min-width:24px;
+    border-radius:50%;
+    border:1.5px solid var(--rule);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:var(--ink-soft);
+  }
+  .opt .txt{font-size:14.5px;line-height:1.5;padding-top:2px;}
+  .opt.selected{border-color:var(--teal);background:var(--teal-tint);}
+  .opt.selected .letter{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .opt.correct{border-color:var(--good);background:var(--good-bg);}
+  .opt.correct .letter{background:var(--good);color:#fff;border-color:var(--good);}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-bg);}
+  .opt.wrong .letter{background:var(--bad);color:#fff;border-color:var(--bad);}
+
+  .quiz-bottom{
+    position:fixed;bottom:0;left:0;right:0;
+    max-width:840px;margin:0 auto;
+    background:var(--paper);
+    border-top:1px solid var(--rule);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+    display:flex;gap:10px;
+  }
+  .quiz-bottom .btn{flex:1;}
+
+  /* ---------- Results ---------- */
+  .result-hero{
+    text-align:center;
+    padding:34px 20px 22px;
+  }
+  .result-hero .score{font-family:var(--serif);font-size:56px;color:var(--teal);line-height:1;}
+  .result-hero .frac{font-size:14px;color:var(--ink-soft);margin-top:6px;}
+  .result-hero .verdict{
+    display:inline-block;margin-top:14px;
+    font-size:12.5px;padding:5px 14px;border-radius:20px;
+  }
+  .verdict.pass{background:var(--good-bg);color:var(--good);}
+  .verdict.fail{background:var(--bad-bg);color:var(--bad);}
+
+  .review-item{
+    border:1px solid var(--rule);border-radius:var(--radius);
+    padding:14px;margin-bottom:10px;background:#fff;
+  }
+  .review-item .rq{font-family:var(--serif);font-size:14.5px;margin-bottom:8px;color:var(--ink);}
+  .review-item .ra{font-size:12.5px;padding:4px 0;}
+  .review-item .ra.correct{color:var(--good);}
+  .review-item .ra.wrong{color:var(--bad);}
+  .review-item .tag{font-size:10.5px;color:var(--gold);letter-spacing:.03em;margin-bottom:6px;display:block;}
+
+  /* ---------- Tools screen ---------- */
+  .tool-card{
+    border:1px solid var(--rule);background:#fff;border-radius:var(--radius);
+    padding:16px;margin-bottom:12px;
+  }
+  .tool-card h3{font-family:var(--serif);font-weight:400;font-size:16px;margin:0 0 8px;color:var(--teal-deep);}
+  .formula{
+    font-family:"Courier New",monospace;
+    background:var(--paper-dim);
+    padding:10px 12px;border-radius:var(--radius);
+    font-size:13px;margin:6px 0;
+    border-left:3px solid var(--gold);
+  }
+  .calc-row{display:flex;gap:8px;margin:8px 0;}
+  .calc-row input{
+    flex:1;padding:10px;border:1px solid var(--rule);border-radius:var(--radius);
+    font-size:14px;background:var(--paper);color:var(--ink);
+  }
+  .calc-result{
+    margin-top:10px;padding:10px 12px;background:var(--teal-tint);border-radius:var(--radius);
+    font-family:var(--serif);font-size:15px;color:var(--teal-deep);
+  }
+
+  .empty-note{
+    text-align:center;color:var(--ink-soft);font-size:13px;padding:30px 20px;
+    font-family:var(--serif);font-style:italic;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  select#examScope{
+    width:100%;padding:11px 12px;border:1px solid var(--rule);border-radius:var(--radius);
+    background:#fff;color:var(--ink);font-size:14px;margin-bottom:10px;
+  }
+
+  @media (min-width:600px){
+    .masthead h1{font-size:34px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="masthead">
+      <div class="masthead-top">
+        <span class="masthead-mark">Field Notes in Economics</span>
+        <span class="masthead-num" id="dateNow"></span>
+      </div>
+      <h1>ECN 141 — Principles of Macroeconomics</h1>
+      <p class="sub">Ten study sessions, national income to transitional economies.</p>
+      <div class="masthead-stats">
+        <div class="mstat"><div class="n" id="statSessions">0/10</div><div class="l">SESSIONS READ</div></div>
+        <div class="mstat"><div class="n" id="statBest">—</div><div class="l">BEST MOCK SCORE</div></div>
+        <div class="mstat"><div class="n" id="statAttempts">0</div><div class="l">ATTEMPTS LOGGED</div></div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="rule-title"><span>Full Mock Exam</span></div>
+      <div class="session-card" style="padding:16px;">
+        <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5;">
+          100 questions drawn across all ten sessions, timed at 45 minutes — the complete paper.
+        </p>
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-gold btn-block" onclick="startExam('all')">Sit the full paper — 45 min</button>
+        </div>
+        <div class="last-attempt" id="fullExamLast"></div>
+      </div>
+
+      <div class="rule-title"><span>Study Sessions</span></div>
+      <div id="sessionList"></div>
+    </div>
+  </div>
+
+  <!-- ===== HISTORY SCREEN ===== -->
+  <div class="screen" id="screen-history">
+    <div class="masthead" style="padding-bottom:16px;">
+      <div class="masthead-mark">Register</div>
+      <h1 style="font-size:26px;">Attempt History</h1>
+    </div>
+    <div class="wrap" id="historyList"></div>
+  </div>
+
+  <!-- ===== TOOLS SCREEN ===== -->
+  <div class="screen" id="screen-tools">
+    <div class="masthead" style="padding-bottom:16px;">
+      <div class="masthead-mark">Reference</div>
+      <h1 style="font-size:26px;">Formulae &amp; Calculator</h1>
+    </div>
+    <div class="wrap">
+      <div class="tool-card">
+        <h3>Key formulae</h3>
+        <div class="formula">APC = Consumption ÷ Disposable Income</div>
+        <div class="formula">APS = Saving ÷ Disposable Income  (= 1 − APC)</div>
+        <div class="formula">MPC = ΔConsumption ÷ ΔDisposable Income</div>
+        <div class="formula">MPS = ΔSaving ÷ ΔDisposable Income  (= 1 − MPC)</div>
+        <div class="formula">Disposable Income = Total Income + Transfers − Taxes</div>
+        <div class="formula">GDP/GNP per capita = Total Output ÷ Population</div>
+        <div class="formula">Growth rate = [(GDPc − GDPp) ÷ GDPp] × 100</div>
+        <div class="formula">Terms of Trade = (Export Price Index ÷ Import Price Index) × 100</div>
+        <div class="formula">Aggregate Expenditure (open economy) = C + I + G + NX</div>
+        <div class="formula">Net Exports (NX) = Exports − Imports</div>
+      </div>
+
+      <div class="tool-card">
+        <h3>Quick calculator — MPC / MPS</h3>
+        <div class="calc-row">
+          <input type="number" id="calcDY" placeholder="Δ Disposable Income (₦bn)">
+        </div>
+        <div class="calc-row">
+          <input type="number" id="calcDC" placeholder="Δ Consumption (₦bn)">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="runCalc()">Compute MPC &amp; MPS</button>
+        <div class="calc-result" id="calcOut" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM TABS ===== -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="home" onclick="showScreen('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      Home
+    </div>
+    <div class="tab" data-tab="history" onclick="showScreen('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5a2 2 0 012-2h9l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+      History
+    </div>
+    <div class="tab" data-tab="tools" onclick="showScreen('tools')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+      Formulae
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUIZ SCREEN (overlay) ===== -->
+<div id="quizScreen">
+  <div class="quiz-top">
+    <button class="exit" onclick="confirmExitQuiz()">&times;</button>
+    <div class="title" id="quizTitle">Session 1</div>
+    <div class="timer" id="quizTimer">30:00</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="quiz-body" id="quizBody"></div>
+  <div class="quiz-bottom">
+    <button class="btn btn-ghost" id="prevBtn" onclick="prevQ()">Back</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextQ()">Next</button>
+  </div>
+</div>
+
+<script>
+// ECN 141 — Principles of Macroeconomics
+// Data extracted from module PDF (10 study sessions)
+
+const SESSIONS = [
+  {
+    id: 1,
+    title: "Introduction to Macroeconomics",
+    blurb: "What macroeconomics studies, its key variables, and the difference between stocks and flows.",
+    outcomes: [
+      "Define Macroeconomics",
+      "Explain basic concepts in Macroeconomics",
+      "Explain the relationship between macroeconomic variables",
+      "Evaluate the meaning of Stocks and Flows",
+      "Discuss the Methodology of Macroeconomics"
+    ],
+    notes: `Macroeconomics is the branch of economic science that studies the behaviour of all economic units combined together — the aggregates, such as the aggregate level of economic activity, output, employment, the general price level, and money. This is unlike Microeconomics, which studies individual units: a person, a household, or a firm.
+
+The primary fields of Macroeconomics are: output, employment, inflation, economic growth and stability, money, interest rates, consumption, savings, investment, and exchange rate adjustments.
+
+Output is usually measured by Gross Domestic Product (GDP). Three methods are used to estimate it: the product (output) method, which sums value-added across industries to avoid double-counting; the expenditure method, which sums spending by individuals, businesses and government, corrected for imports and exports; and the income method, which sums the incomes (wages, proprietors' income, corporate profits) earned by all producers.
+
+Full employment is the level where there is no cyclical or deficient-demand unemployment — not 0% unemployment, since some frictional and structural unemployment is normal.
+
+A Stock variable is measured at a single point in time (e.g. wealth, public debt, savings held). A Flow variable is measured over a period of time (e.g. income, investment spending, saving during a year).
+
+Macroeconomic methodology proceeds through Macrostatics (the equilibrium position of variables at a point in time), Comparative Macrostatics (comparing two equilibrium positions), and Macrodynamics (the path an economy takes moving from one equilibrium to another over time).`,
+    saqs: [
+      { q: "What is Macroeconomics?", a: "The branch of economic analysis that studies the behaviour of all economic units combined — the aggregate level of economic activity, output, employment, the general price level, and money — as distinct from Microeconomics, which studies individual units." },
+      { q: "Why is it important to study Macroeconomic variables individually and collectively?", a: "Because each variable (output, employment, inflation, etc.) has its own dynamics worth understanding on its own, but macroeconomic outcomes also emerge from how these variables interact and affect one another — policy that ignores those relationships can produce unintended effects elsewhere in the economy." },
+      { q: "Explain Macrostatics, Comparative Macrostatics and Macrodynamics.", a: "Macrostatics examines an economy's equilibrium position at one point in time. Comparative Macrostatics compares two different equilibrium positions without describing the path between them. Macrodynamics studies the actual path or process by which an economy moves from one equilibrium position to another over time." }
+    ],
+    mcqs: [
+      { q: "Macroeconomics aims at ……?", opts: ["The study of macroeconomic policy of the governments", "An understanding of the macroeconomy, macroeconomic variables and the relationship between them", "An understanding of macroeconomic issues that derive from microeconomic analysis", "All of the above"], a: 3 },
+      { q: "Strike out the odd property from the following:", opts: ["Urban price level", "Unemployment", "Aggregate Investment", "Output"], a: 0 },
+      { q: "One of the following is not part of the methodology of Macroeconomic analysis. Identify that option.", opts: ["Macrostatics", "Macrodynamics", "Comparative Macrostatics", "Comparative Macrodynamics"], a: 3 },
+      { q: "Macroeconomics focuses on the following units in an aggregative manner ….?", opts: ["Individual Consumer-Household-Government", "Government-Household-Firm-Individual Consumer", "Household-Firm-Government", "Individual Consumer-Household-Firm-Manufacturing Sector"], a: 2 },
+      { q: "Isolate the odd one from the following:", opts: ["Exchange Rate", "Inflation Rate", "Public Expenditure", "None of the above"], a: 3 },
+      { q: "A Flow variable is a variable that is defined ……?", opts: ["over a period of time", "at a particular point in time", "in a particular year", "between two periods"], a: 0 },
+      { q: "Which of the variables below does not belong to the group?", opts: ["Income", "Wealth", "Fiscal deficit", "Saving"], a: 1 },
+      { q: "Which of the following is not a Stock variable?", opts: ["Savings (flow of saving during a period)", "Wealth", "Saving", "Public debt"], a: 2 },
+      { q: "Macroeconomics deals with …….?", opts: ["Over-all averages of the National economy", "Aggregates in the study of macroeconomic units", "Relationship with the various macroeconomic variables", "All of the above"], a: 3 },
+      { q: "Macroeconomic goals include all but one of the following.", opts: ["Price stability", "Firm output and capacity growth", "Full employment", "Economic growth"], a: 1 }
+    ]
+  },
+  {
+    id: 2,
+    title: "National Income and Circular Flow of Income",
+    blurb: "How nations account for aggregate output, income and expenditure, and the circular-flow model.",
+    outcomes: [
+      "Define national income",
+      "Explain the circular flow of income model",
+      "Distinguish GDP, GNP and related aggregates",
+      "Explain the methods of computing national income",
+      "Discuss problems in national income accounting"
+    ],
+    notes: `Just as a business keeps financial records, a nation keeps an account of the aggregate value of its production, consumption and other economic activities — this record is National Income.
+
+The Circular Flow of Income model shows the movement of resources, goods and money between households and firms: households supply factors of production (land, labour, capital) to firms and receive income in return; firms supply goods and services to households in return for expenditure.
+
+Gross Domestic Product (GDP) is the total monetary value of all final goods and services produced within a country in a given period, usually a year, regardless of who produced them. Gross National Product (GNP) instead measures output produced by a country's nationals, wherever in the world they are located.
+
+Depreciation refers to capital consumption — the wearing out of capital equipment during production — and must be subtracted from Gross figures to arrive at Net figures (e.g. GDP minus depreciation gives Net Domestic Product).
+
+National income can be computed by three approaches: the product/output approach (summing value-added by industry), the expenditure approach (summing spending on final goods and services), and the income approach (summing all income earned by factors of production — wages, rent, interest, profit).
+
+Problems in national income accounting include: the valuation problem (assigning market prices to non-marketed output), the problem of double-counting (avoided by using value-added), and the exclusion of illegal or underground/informal economic activities, which causes the true contribution of some sectors to be underestimated.`,
+    saqs: [
+      { q: "Explain why a washing machine sold to a dry-cleaner is a final good, even though it is fixed investment (capital) used to produce other goods. Is there a double-counting problem if this sale is added to GDP?", a: "Capital goods are not excluded from being final goods. A final good is a finished good bought by the final user and not for resale. Here, the dry-cleaner is the final user, so the sale is properly included in GDP, and no double-counting occurs." },
+      { q: "How do net exports affect the Nigerian economy, and why do we use net exports rather than just adding exports to the other expenditure components of GDP?", a: "Net exports (exports minus imports) contribute positively to GDP when foreign spending on Nigerian products exceeds Nigerian spending on foreign products, and negatively when the reverse holds. We subtract imports because consumption, investment and government spending figures already include spending on imported goods, which did not originate from domestic production — subtracting imports corrects for this." }
+    ],
+    mcqs: [
+      { q: "National income can be defined as", opts: ["The market value of goods and services produced in a state", "The monetary value of all the goods and services produced in a country during an accounting period, usually a year", "The company value of all goods and services", "The value of goods and services produced globally"], a: 1 },
+      { q: "Circular flow of income as a model", opts: ["Shows the movement of resources among states", "Shows the movement of funds", "Indicates the flow of human capital", "Shows the movement of resources between firms and households"], a: 3 },
+      { q: "Gross domestic product (GDP) refers to", opts: ["Total monetary value of all final goods and services produced by people living in a country, irrespective of nationality, within a given period, usually a year", "Monetary value of all final goods and services produced by nationals of a country, whether living at home or abroad", "Earnings of an individual for taking part in the production process", "Income left after personal income tax has been deducted"], a: 0 },
+      { q: "Depreciation also refers to", opts: ["Capital formation", "Capital destruction", "Net national product", "Capital consumption"], a: 3 },
+      { q: "By 'stock' variable, we mean", opts: ["Total amount of existing output at a particular point in time", "The amount of current output", "Value of output produced in a given year", "Excess capacity"], a: 0 },
+      { q: "National income computation by income approach", opts: ["Sums the value of households' expenditure", "Sums all income received by factors of production", "Sums the value added to input", "Takes account of government intervention"], a: 1 },
+      { q: "One of the determinants of national income is", opts: ["The number of political parties", "The method of data gathering", "Business law", "The state of technology"], a: 3 },
+      { q: "We measure national income so as to", opts: ["Criticise government programmes and policies", "Make future economic forecasts", "Develop an economic model", "Identify individual problems"], a: 1 },
+      { q: "One of the major problems encountered during national income accounting is", opts: ["Adjustment problem", "Valuation problem", "Counting problem", "Communication problem"], a: 1 },
+      { q: "By excluding illegal or underground activities from national income accounting", opts: ["The exact economic contribution is overestimated", "The true economic contribution is taken", "The correct economic contribution of each sector is underestimated", "We can rely totally on the figures"], a: 2 }
+    ]
+  },
+  {
+    id: 3,
+    title: "Overview of the Keynesian Theory",
+    blurb: "The Great Depression, Keynes's critique of the Classical school, and the demand side of the macroeconomy.",
+    outcomes: [
+      "Explain the origins of Keynesian theory",
+      "Describe aggregate expenditure in an open economy",
+      "Contrast Keynesian and Classical views on recession",
+      "Explain Keynes's proposed stabilisation policy"
+    ],
+    notes: `The Great Depression of the 1930s, which produced massive unemployment, was the springboard for Keynes's approach to economic policy. John Maynard Keynes concluded that a market-driven (laissez-faire) economy could fall into a recessionary trap and not recover on its own.
+
+Classical economists, following Adam Smith's principle of laissez-faire ("leave it alone"), believed markets were self-correcting: idle resources from a recession — unemployed workers, empty factories, idle bank reserves — represented a disequilibrium that would correct itself as wages and interest rates fell, encouraging firms to hire and invest.
+
+Keynes rejected this. He argued that when factories already hold excess inventory and demand is falling, no interest rate is low enough to make borrowing and investment attractive to firms. Likewise, workers anticipating layoffs will keep saving regardless of how low interest rates fall. Firms will not hire, even at lower wages, if there is no demand for the extra output. In the short run, firms cannot easily change their production methods or capital stock, so the economy can settle into an equilibrium with unemployed resources.
+
+Keynes's solution was to stimulate demand directly. He proposed that in a recession, government should cut taxes (raising disposable income) and run a budget deficit, boosting aggregate demand, income, and employment.
+
+In an open economy, aggregate expenditure = C + I + G + NX (net exports), where NX = Exports − Imports.`,
+    saqs: [
+      { q: "What do you understand by laissez-faire?", a: "Laissez-faire ('leave it alone') is the principle of non-governmental interference in economic affairs, introduced and supported by Adam Smith and later classical economists. It holds that an unregulated free market is efficient, and that government intervention risks impairing market efficiency and slowing economic growth." },
+      { q: "Explain Keynes's theory and his criticisms of the Classicalists.", a: "Classical economists believed a recession's idle resources (unemployment, idle capital) would self-correct as wages and interest rates fell. Keynes argued this fails: when demand collapses and inventories are already excessive, no interest rate is low enough to spur investment, and no rate is low enough to discourage precautionary saving by workers fearing layoffs. Firms will not hire even at lower wages if demand for output isn't there. Keynes concluded government must actively stimulate demand — via tax cuts and deficit spending — to pull an economy out of a recessionary trap." }
+    ],
+    mcqs: [
+      { q: "Aggregate expenditure in an open economy is represented by (C=consumption, I=investment, G=government expenditure, NX=net export, M=import):", opts: ["C+I+G", "C+I+G+XN", "C+I+G+NX", "C+I+G-M"], a: 2 },
+      { q: "One of the following is a formula for net export (X=export, M=import):", opts: ["X+M", "G-M", "X/(X+M)", "X – M"], a: 3 },
+      { q: "The Keynesian model of income determination was given impetus by", opts: ["The need to propound a theory", "The inability of the classicalists' proposition to solve the depression of 1930s", "The need to counter the existing theory", "All of the above"], a: 1 },
+      { q: "One of these theories postulates that during a recession, interest rates should fall, stimulating consumption and investment spending:", opts: ["Classical theory", "Neo-classical theory", "Keynes' theory", "Keynesian theory"], a: 0 },
+      { q: "Keynes concluded that a laissez-faire economy could fall into which of the following?", opts: ["Unemployment", "Inflation", "A recessionary trap", "None of the above"], a: 2 },
+      { q: "The classicals believed a market-driven economy would better achieve which of the following?", opts: ["Full employment", "Price stability", "Economic growth", "All of the above"], a: 3 },
+      { q: "Which of the following led to the criticism of classical economics?", opts: ["Keynesian economists", "The Great Depression of the 1930s", "The monetarists", "The Neoclassicals"], a: 1 },
+      { q: "Which of the following describes the common usage of the term 'recession'?", opts: ["A fall in real GDP for two consecutive quarters", "A slump in the supply of machinery", "Low demand for goods and services for a quarter", "A lack of industrial goods"], a: 0 },
+      { q: "Which economist is earliest associated with recommending the laissez-faire economy?", opts: ["David Ricardo", "John Maynard Keynes", "Adam Smith", "A. C. Pigou"], a: 2 },
+      { q: "The branch of economic theory, and the doctrines, associated with Keynes is called", opts: ["Keynes economics", "Cambridge economics", "Keynesian economics", "Classical economics"], a: 2 }
+    ]
+  },
+  {
+    id: 4,
+    title: "Consumption, Savings and Investment Functions",
+    blurb: "The determinants of aggregate demand's components: consumption, saving, and private investment.",
+    outcomes: [
+      "Explain the factors affecting consumption and savings",
+      "Explain the determinants of investment decisions",
+      "Compute average and marginal propensities to consume and save",
+      "Distinguish types of investment"
+    ],
+    notes: `Aggregate demand may be treated as the sum of consumption demand and private investment demand. To analyse it, we break aggregate demand into its component determinants: consumption, saving, and private investment.
+
+Factors affecting consumption and savings include: expectations of future income (people spend more if they expect a pay rise); wealth (greater wealth raises willingness to consume); expectations of rising prices (can pull consumption forward); the real-balance effect (rising price levels reduce the real value of money holdings, reducing spending); taxes (which affect disposable income directly); availability of credit; the distribution of income across households with differing marginal propensities to consume (MPC); and cultural factors (e.g. patterns of spending on ceremonies).
+
+Determinants of investment decisions include: expectations of future sales (firms won't invest in new plant unless they expect demand for the extra output); technology and innovation (advances that lower costs or open new markets stimulate investment); and the rate of interest — the primary determinant, since firms often borrow to finance capital purchases. Higher interest rates raise the cost of investing and reduce investment spending, all else equal (ceteris paribus). This inverse relationship between the interest rate and investment is captured by the Marginal Efficiency of Investment (MEI) function.
+
+Key formulas: Disposable income (Yd) = Total income + Transfers − Taxes. Average Propensity to Consume (APC) = Consumption / Yd. Average Propensity to Save (APS) = Saving / Yd = 1 − APC. Marginal Propensity to Consume (MPC) = ΔConsumption / ΔYd. Marginal Propensity to Save (MPS) = ΔSaving / ΔYd = 1 − MPC.`,
+    saqs: [
+      { q: "What are the factors affecting consumption and savings?", a: "Expectations of future income; wealth; expectations of rising prices; price levels (real-balance effect); taxes; availability of credit; changes in the distribution of income across households with different MPCs; and cultural factors influencing spending and saving habits." },
+      { q: "What are the major determinants of investment decisions?", a: "Expectations of future sales and income (firms invest only if they expect demand for the extra output); technology and innovation (which can stimulate new rounds of investment); and the rate of interest, the primary determinant, since higher interest rates raise the cost of borrowing to invest and thus reduce desired investment spending." }
+    ],
+    mcqs: [
+      { q: "Total income for 2010 is ₦21,010bn, total transfers ₦5,000bn, depreciation ₦2,500bn, and consumption ₦15,000bn. Disposable income for 2011 is ₦31,500bn and consumption ₦20,050bn. Total disposable income (₦bn) for 2010 is?", opts: ["₦21,010", "₦5,000", "₦7,500", "₦23,510", "₦28,510"], a: 3 },
+      { q: "Using the same 2010 figures as above, the Average Propensity to Save for 2010 is?", opts: ["0.286", "0.362", "0.7000", "0.4739", "0.421"], a: 0 },
+      { q: "Using the 2010/2011 figures above, the Marginal Propensity to Consume for 2011 is?", opts: ["0.632", "0.240", "0.1771", "0.523", "0.731"], a: 0 },
+      { q: "Using the 2010/2011 figures above, the Marginal Propensity to Save for 2011 is?", opts: ["0.269", "0.477", "0.823", "0.760", "0.368"], a: 4 },
+      { q: "Expenditure on goods acquisition to meet consumers' demand is called", opts: ["Investment", "Inventory investment", "Current investment", "Fixed investment", "Social investment"], a: 1 },
+      { q: "One of the following is a determinant of consumption", opts: ["Total income", "Investment", "Expectations", "Mood", "Family size"], a: 0 },
+      { q: "One of the following is a determinant of savings", opts: ["Real balance effect", "Investment drive", "Availability of banks", "Family size", "Total income"], a: 0 },
+      { q: "A major determinant of investment is?", opts: ["Consumption", "Saving", "Rate of interest", "Cultural factors", "Total income"], a: 2 },
+      { q: "Which of the following is true of investment?", opts: ["Investment is directly related to the rate of investment", "Investment is inversely related to the rate of interest", "Investment is difficult where consumption is low", "Investment is a determinant of the rate of interest", "None of the above"], a: 1 },
+      { q: "The relationship between the rate of interest and investment decisions is best captured by", opts: ["Autonomous Investment", "Induced Investment", "Fixed Investment", "Inventory Investment", "Marginal Efficiency of Investment (MEI) function"], a: 4 }
+    ]
+  },
+  {
+    id: 5,
+    title: "Monetary Policy and Fiscal Policy",
+    blurb: "The roles of the Central Bank and government spending/taxation in managing the economy.",
+    outcomes: [
+      "Define and explain Monetary and Fiscal Policies",
+      "Explain the roles of the Central Bank",
+      "Distinguish expansionary and contractionary fiscal policy",
+      "Explain the money market and capital market"
+    ],
+    notes: `Fiscal policy concerns government spending and taxation. Monetary policy concerns the money supply and interest rates, primarily managed through open market operations and reserve requirements by the central bank.
+
+The primary purpose of taxation is to support/finance the government's activities. Government spending is the key mechanism through which government gives money to (or spends on behalf of) the public.
+
+Expansionary fiscal policy — increased government spending and/or reduced taxes, running a larger budget deficit — is used to stimulate a weak economy (increase output, e.g. cassava production, and employment). Contractionary (restrictive) fiscal policy — raising taxes or cutting spending, running a smaller deficit or a surplus — reduces aggregate demand and combats inflation ("overheating").
+
+The Money Market deals with short-term funds (up to about three years), while the Capital Market deals with long-term funds. In Nigeria, the money market comprises instruments such as Treasury Bills (first issued 1960, now weekly, for 91-day funds), the Call Money Fund (established 1962, for overnight/short-term lending between institutions), Treasury Reserve Certificates (bridging Treasury Bills and long-term development loan stock), and commercial papers. Participants include the CBN, commercial and merchant banks, insurance companies, and discount houses. Functions of the money market include allocating savings into investment, promoting liquidity and safety of financial assets, and enabling the transfer of funds across sectors.
+
+Fiscal policy (taxes and government spending) works alongside monetary policy (open market operations and reserve requirements) but they are distinct policy pairs.`,
+    saqs: [
+      { q: "Examine what you understand by the Money Market.", a: "The money market deals in short-term funds (up to roughly three years), as distinct from the capital market, which deals in long-term funds. In Nigeria it includes Treasury Bills, the Call Money Fund, Treasury Reserve Certificates and commercial papers, and its functions include allocating savings to investment, promoting liquidity and safety of financial assets, and transferring funds between sectors." },
+      { q: "Discuss and differentiate between discretionary fiscal policy and expansionary monetary policy.", a: "Expansionary fiscal policy involves the government increasing spending and/or cutting taxes, running a larger budget deficit (G > T), to stimulate a recessionary economy — financed by borrowing from individuals, businesses or foreigners. Restrictive/contractionary fiscal policy instead raises taxes or cuts spending to reduce aggregate demand and control inflation. This is distinct from monetary policy, which works through the central bank's control of money supply and interest rates rather than through the government's budget." }
+    ],
+    mcqs: [
+      { q: "Which of the following pairs best fit with fiscal policy?", opts: ["Taxes and government spending", "Open market operations and reserve requirement", "Taxes and open market operations", "Open market operations and government spending"], a: 0 },
+      { q: "What is the primary purpose of taxation?", opts: ["To annoy the public", "To save money", "To support the government", "To help the Fed"], a: 2 },
+      { q: "Which of the following does not involve government spending?", opts: ["Tayo purchases a new car", "Segun receives unemployment benefits", "Foluso is in the navy", "Lekan works for a defense contractor"], a: 0 },
+      { q: "Which of the following is the key to taxation?", opts: ["Government does not affect the public's money", "The government takes money from the public", "The government gives money to the public", "None of the above"], a: 1 },
+      { q: "Which of the following is the key to government spending?", opts: ["The government does not affect the public's money", "The government takes money from the public", "The government gives money to the public", "None of the above"], a: 2 },
+      { q: "What does expansionary fiscal policy do to the production of cassava in Nigeria?", opts: ["Does not affect it", "Increases it", "Decreases it", "It depends"], a: 1 },
+      { q: "What does contractionary fiscal policy do to output?", opts: ["Does not affect it", "Increases it", "Decreases it", "It depends"], a: 2 },
+      { q: "What is the effect of expansionary fiscal policy on the money supply?", opts: ["It depends", "Does not affect it", "Decreases it", "Increases it"], a: 3 },
+      { q: "What is the effect of fiscal policy on the money supply generally?", opts: ["It depends", "Does not affect it", "Decreases it", "Increases it"], a: 0 },
+      { q: "What is the effect of stable fiscal policies on the money supply?", opts: ["It depends", "Does not affect it", "Decreases it", "Increases it"], a: 0 }
+    ]
+  },
+  {
+    id: 6,
+    title: "Elements of Trade",
+    blurb: "Why nations trade, early trade theories (mercantilism, comparative advantage), and barter.",
+    outcomes: [
+      "Define and use correctly key trade terms",
+      "Explain mercantilism and comparative advantage",
+      "Explain the problems of barter trade",
+      "Discuss reasons nations engage in international trade"
+    ],
+    notes: `No nation is self-sufficient; nations trade to consume what they cannot produce and export what they can produce, to earn revenue. Understanding the basic elements of trade is fundamental to economics.
+
+Barter trade is the direct exchange of goods or services for other goods or services, without money as a medium of exchange. Its problems include the need for a "double coincidence of wants," the absence of a common measure of value, and a lack of divisibility of goods.
+
+Mercantilism (dominant roughly 1500s–late 1700s, associated with nations like the Netherlands, Great Britain and Portugal) held that gold and silver were the mainstay of national wealth, and viewed trade as a "zero-sum game" — one country's gain was another's loss.
+
+Comparative advantage (associated with David Ricardo) is a "positive-sum game" view: both trading nations can gain simultaneously, because each specialises in producing goods for which its domestic opportunity cost is lower than other nations', then trades for goods with relatively higher domestic opportunity cost.
+
+Reasons nations engage in international trade include: differences in natural resources (e.g. Nigeria has oil but may lack timber), gains from specialisation and economies of scale, and the benefits of increased competition (lower prices, greater responsiveness to consumers, wider product variety).
+
+A tariff imposed by an importing country (e.g. Nigeria on goods from Canada) raises the price of the good in the importing country and can lower it in the exporting country.`,
+    saqs: [
+      { q: "Explain the term 'trade by barter'.", a: "Barter is a system of exchange in which goods or services are directly exchanged for other goods or services, without a medium of exchange such as money — a direct, party-to-party exchange of value." },
+      { q: "Explain three reasons why nations embark on international trade.", a: "(i) Differences in natural resources — nations have different endowments of land, labour and capital, and must trade for what they lack. (ii) Gains from specialisation — countries can achieve economies of scale, lowering average costs as output increases. (iii) Benefits of increased competition — greater competition from trade lowers prices, improves responsiveness to consumer needs, and widens product variety." }
+    ],
+    mcqs: [
+      { q: "Which theory is associated with the words 'Zero-Sum Game'?", opts: ["Comparative advantage", "Mercantilism", "Absolute advantage", "Product life cycle"], a: 1 },
+      { q: "If goods are imported into Nigeria from Canada, the imposition of a tariff in Nigeria", opts: ["Raises the price of the good in both countries (the 'Law of One Price')", "Raises the price in Nigeria and cannot affect its price in Canada", "Lowers the price of the good in Nigeria and could raise it in Canada", "Raises the price of the good in Nigeria and lowers it in Canada"], a: 3 },
+      { q: "Mercantilism held that..", opts: ["Silver alone was the mainstay of national wealth", "Gold alone was the mainstay of national wealth", "Silver and gold were the mainstays of national wealth", "Silver and gold are not important for national wealth"], a: 2 },
+      { q: "Which theory is associated with the words 'Positive-Sum Game'?", opts: ["Comparative advantage", "Mercantilism", "Absolute advantage", "Product life cycle"], a: 0 },
+      { q: "In the Mercantilist view of trade (two-country world),", opts: ["Both countries could gain simultaneously, but distribution depended on terms of trade", "Both countries could gain simultaneously, with terms of trade irrelevant to distribution", "Neither country could ever gain from trade", "One country's gain was associated with a loss for the other"], a: 3 },
+      { q: "Which of these is NOT an advantage of nations engaging in international trade?", opts: ["Monetary benefits accrue to the trading countries", "Foreign trade makes more variety of goods available to consumers", "There are better qualities of goods when nations trade with one another", "Foreign trade is beneficial to the world economy and adds to the world's money coffers at large"], a: 3 },
+      { q: "Which nation was NOT involved in mercantilist trade from the 1500s to the late 1700s?", opts: ["Netherlands", "Great Britain", "Portugal", "Ukraine"], a: 3 },
+      { q: "All of the following are problems of barter trade EXCEPT:", opts: ["Double coincidence of wants", "Absence of a common measure of value", "Lack of divisibility", "Barter is a simple system devoid of the complex problems of the modern monetary system"], a: 3 },
+      { q: "When crude oil is imported from Shell Nigeria by a Brazilian company, processed into petroleum products, and re-exported to Chevron Kenya, this is called ……….", opts: ["Export trade", "Import trade", "Wholesale trade", "None of the above (entrepôt/re-export trade)"], a: 3 },
+      { q: "The theory of comparative advantage is associated with …..", opts: ["Adam Smith", "David Ricardo", "Ohlin-Hecker", "John Stuart Smith"], a: 1 }
+    ]
+  },
+  {
+    id: 7,
+    title: "Terms of Trade and Balance of Payments",
+    blurb: "Measuring a nation's international transactions: terms of trade, current account, and BOPs deficits.",
+    outcomes: [
+      "Define and use correctly key BOPs terms",
+      "Explain terms of trade and how it is calculated",
+      "Distinguish the components of the Balance of Payments",
+      "Discuss measures to correct BOPs deficits"
+    ],
+    notes: `Every international transaction enters the balance of payments twice: once as a credit and once as a debit — the double-entry principle of BOPs accounting.
+
+Terms of Trade (TOT) measures the ratio of a country's export price index to its import price index, typically expressed as: TOT = (Export Price Index / Import Price Index) × 100.
+
+The Balance of Trade (visible trade balance) is the record of a country's imports and exports of goods and services. The Current Account of the BOPs is broader: it records the balance of trade plus net investment income and current transfers to and from abroad. Current Account = Exports − Imports (broadly).
+
+A central bank's international reserves include any gold it owns, plus foreign and domestic assets.
+
+When a country's currency depreciates, foreigners find its exports cheaper (boosting exports), while domestic residents find imports more expensive.
+
+A trade deficit occurs when a country's imports exceed its exports.
+
+Nigeria needs BOPs accounting because: it signals when import spending exceeds export earnings, prompting domestic policy adjustment; it provides historical data useful for planning and for estimating net foreign investment; and it serves as an indicator of economic and political stability (e.g. persistent BOPs surpluses may signal healthy foreign direct investment inflows).
+
+Measures to correct a BOPs deficit include: export promotion (tax concessions, marketing support, credit incentives to exporters); import substitution (encouraging domestic industries that replace imports); and exchange rate/exchange control (the central bank directing exporters to surrender foreign exchange, restricting its use to essential goods).`,
+    saqs: [
+      { q: "Briefly discuss three reasons why a nation such as Nigeria needs Balance of Payments (BOPs) accounting.", a: "(a) It signals when imports exceed exports, prompting the government to adjust domestic policy. (b) It provides historical export/import data useful for planning, and data on net foreign investment. (c) It serves as an indicator of economic and political stability — a consistently positive BOPs may signal significant foreign direct investment." },
+      { q: "What measures can the Nigerian government adopt to correct or reduce BOPs deficits?", a: "(a) Export promotion — tax concessions, marketing facilities and credit incentives to exporters. (b) Import substitution — fiscal and monetary measures to encourage industries producing substitutes for imports, reducing import dependence. (c) Exchange rate control — the central bank directs exporters to surrender foreign exchange and restricts its supply to essential goods." }
+    ],
+    mcqs: [
+      { q: "Every international transaction automatically enters the balance of payments", opts: ["Once, either as a credit or as a debit", "Twice, once as a credit and once as a debit", "Once as a credit", "Twice, both times as a debit"], a: 1 },
+      { q: "If Nigeria's export price index rose from 150 (1998) to 220 (2010) and import price index rose from 150 to 160 in the same period, the Nigerian terms of trade (base, current) will be…", opts: ["150, 137.5", "180, 160", "175, 135", "185, 145"], a: 0 },
+      { q: "Which of these measures CANNOT be used to correct a BOPs deficit in Nigeria?", opts: ["Import promotion", "Export promotion", "Import substitution", "Exchange control"], a: 0 },
+      { q: "Which expression most accurately describes the Current Account (CA) of BOPs?", opts: ["CA = Export – Import", "CA = Import – Export", "CA = Export = Import", "CA = Export + Import"], a: 0 },
+      { q: "When a country's currency depreciates,", opts: ["Foreigners find its exports more expensive, and residents find imports more expensive", "Foreigners find its exports more expensive, and residents find imports cheaper", "Foreigners find its exports cheaper, and domestic residents are not affected", "None of the above"], a: 3 },
+      { q: "One of these is NOT a cause of balance of payments (BOPs) deficits in Nigeria.", opts: ["Poor performance of the non-oil sector", "Import substitution strategies", "High servicing of debt", "Export promotion"], a: 3 },
+      { q: "The record of a country's imports and exports of goods and services is called its:", opts: ["Balance of trade", "Terms of payments", "Balance of payments on current account", "Visible trade balance"], a: 0 },
+      { q: "A central bank's international reserves include:", opts: ["Any gold that it owns", "Any silver that it owns", "Any gold that it owns, plus foreign and domestic assets", "Any silver that it owns, plus foreign and domestic assets"], a: 2 },
+      { q: "The record of a country's imports/exports of goods and services plus net investment income and current transfers is called its:", opts: ["Visible trade balance", "Balance of payments on current account", "Balance of trade", "Balance of payments"], a: 1 },
+      { q: "The situation whereby a country imports more than it exports is:", opts: ["A trade deficit", "A recession", "An expansion", "A trade surplus"], a: 0 }
+    ]
+  },
+  {
+    id: 8,
+    title: "Inflation and Unemployment",
+    blurb: "The 'twin' macroeconomic problems: what causes them, how they are measured, and how they interact.",
+    outcomes: [
+      "Explain the term inflation and unemployment and how they are measured",
+      "Explain demand-pull and cost-push inflation",
+      "Discuss the Phillips curve relationship",
+      "Identify types of unemployment"
+    ],
+    notes: `Inflation is the overall, general upward price movement of goods and services in an economy, often caused by an increase in the money supply, and usually measured using the Consumer Price Index (CPI) or Producer Price Index (PPI). Forms of inflation include Demand-Pull (caused by an increase in aggregate demand outstripping supply), Cost-Push (caused by rising production costs shifting aggregate supply), Imported Inflation, and War-caused inflation.
+
+An increase in injections (spending) into the economy shifts aggregate demand outward and, if aggregate supply cannot respond fully, leads to demand-pull inflation — more likely when aggregate supply is relatively inelastic. Increases in production costs shift aggregate supply and produce cost-push inflation.
+
+Inflation reduces the purchasing power of money. A currency's depreciation or devaluation can offset the effect of domestic inflation on price competitiveness abroad.
+
+The Phillips Curve shows the historical inverse relationship between inflation and unemployment. According to the theory, unemployment returns to its natural rate once real wages return to their long-run equilibrium level. In the short run, unemployment can fall below the natural rate when nominal wages rise faster than inflation (raising real wages temporarily and encouraging hiring — though this is debated across schools of thought).
+
+The Quantity Theory of Money underlies monetarist predictions by assuming a constant velocity of money.
+
+Types of unemployment: Structural unemployment (from slower capital-stock growth, unable to absorb the labour force); Seasonal unemployment (tied to seasonal activities like agriculture or tourism); Frictional unemployment (workers temporarily between jobs due to labour mobility/job search); and Cyclical (Keynesian) unemployment (due to deficient aggregate demand during a business-cycle downturn).`,
+    saqs: [
+      { q: "Define what an economist means by the term 'inflation'.", a: "Inflation is the overall, general upward movement of prices of goods and services in an economy, often caused by an increase in the money supply, and usually measured by the Consumer Price Index and Producer Price Index. It can take the forms of demand-pull, cost-push, imported, and war-caused inflation." },
+      { q: "Mention four types of unemployment.", a: "Structural unemployment (from slow capital stock growth failing to absorb the labour force); Seasonal unemployment (tied to seasonal industries like agriculture); Frictional unemployment (workers temporarily out of work while searching or relocating); and Cyclical/Keynesian unemployment (due to deficient aggregate demand during a downturn)." }
+    ],
+    mcqs: [
+      { q: "Demand-pull inflation may be caused by:", opts: ["An increase in costs", "A reduction in interest rates", "A reduction in government spending", "An outward shift in aggregate supply"], a: 1 },
+      { q: "Inflation:", opts: ["Always reduces the cost of living", "Always reduces the standard of living", "Reduces the price of products", "Reduces the purchasing power of money"], a: 3 },
+      { q: "An increase in injections into the economy may lead to:", opts: ["An outward shift of aggregate demand and demand-pull inflation", "An outward shift of aggregate demand and cost-push inflation", "An outward shift of aggregate supply and demand-pull inflation", "An outward shift of aggregate supply and cost-push inflation"], a: 0 },
+      { q: "An increase in aggregate demand is more likely to lead to demand-pull inflation if:", opts: ["Aggregate supply is perfectly elastic", "Aggregate supply is perfectly inelastic", "Aggregate supply is unit elastic", "Aggregate supply is relatively elastic"], a: 1 },
+      { q: "An increase in costs will:", opts: ["Shift aggregate demand", "Shift aggregate supply", "Reduce the natural rate of unemployment", "Increase the productivity of employees"], a: 1 },
+      { q: "The effects of inflation on a country's price competitiveness may be offset by:", opts: ["An appreciation of the currency", "A revaluation of the currency", "A depreciation of the currency", "Lower inflation abroad"], a: 2 },
+      { q: "According to the Phillips curve, unemployment will return to the natural rate when:", opts: ["Nominal wages are equal to expected wages", "Real wages are back at long-run equilibrium level", "Nominal wages are growing faster than inflation", "Inflation is higher than the growth of nominal wages"], a: 2 },
+      { q: "In the short run, unemployment may fall below the natural rate if:", opts: ["Nominal wages have risen less than inflation", "Nominal wages have risen at the same rate as inflation", "Nominal wages have risen more than inflation", "Nominal wages have risen less than unemployment"], a: 3 },
+      { q: "The Phillips curve shows the relationship between inflation and what?", opts: ["The balance of trade", "The rate of growth in an economy", "The rate of price increases", "Unemployment"], a: 3 },
+      { q: "The quantity theory of money lets monetarists derive predictions by assuming a constant", opts: ["Velocity of money", "Nominal output", "Overall price level", "Stock of money"], a: 0 }
+    ]
+  },
+  {
+    id: 9,
+    title: "Economic Growth and Development",
+    blurb: "Why growth is necessary but not sufficient for development, and the features of developing economies.",
+    outcomes: [
+      "Distinguish economic growth from economic development",
+      "Compute per-capita GDP/GNP and growth rates",
+      "Explain reasons growth may not lead to development",
+      "Discuss the features of developing countries"
+    ],
+    notes: `Economic growth and economic development are related but distinct. Economic growth is the expansion in a nation's real output — an increase in real GDP, reflected in increased real per-capita income. It is measured as the percentage increase in real GDP over time: Growth rate = [(GDPcurrent − GDPprevious) / GDPprevious] × 100.
+
+Economic development is a broader, sustainable increase in real GDP that also implies increased real per-capita income, better education and health, environmental protection, and legal/institutional reform. Economic growth is a necessary but not sufficient condition for economic development.
+
+GDP/GNP per capita = Total GDP or GNP ÷ Population.
+
+Reasons growth may not lead to development: growth may be inadequate relative to population growth; unequal income distribution can widen the rich-poor gap even as GDP rises; imbalanced sectoral development (e.g. oil-sector growth without matching improvements in housing, health, or infrastructure); environmental degradation and ecological disturbance; moral/social decadence (corruption, examination malpractice); and dependence on primary-product exports with volatile prices.
+
+Developmental objectives include: growth in income; equitable income distribution; employment promotion; self-reliance (in food, external balance, security); price stability; balanced regional development; and environmental preservation.
+
+Features common to developing countries: low standards of living; poor health outcomes and lower life expectancy; low levels of labour productivity; heavy dependence on agriculture and primary-product exports (which can be 80–90% of export earnings, versus around 35% for developed nations); and dominance/dependence/vulnerability in international economic and political relations.`,
+    saqs: [
+      { q: "Define economic growth as it differs from economic development, and explain reasons why economic growth may not lead to economic development.", a: "Economic growth is the expansion of a nation's real output (real GDP), measured as the percentage change in real GDP over time. Economic development is a broader, sustainable increase in real GDP accompanied by improved living standards, education, health, environmental protection, and institutional reform. Growth may fail to produce development when it is outpaced by population growth, when income distribution worsens, when sectoral development is imbalanced, when environmental degradation occurs, when moral/social decadence undermines institutions, or when the economy remains dependent on volatile primary-product exports." },
+      { q: "What are developmental objectives, and what are common features of developing countries?", a: "Developmental objectives: growth in national income; equitable income distribution; employment promotion; self-reliance; price stability; balanced regional development; and environmental preservation. Common features of developing countries: low standards of living; poor health and lower life expectancy; low labour productivity; heavy dependence on agriculture and primary exports; and dominance/dependence in international relations with richer nations." }
+    ],
+    mcqs: [
+      { q: "If GDP for a country is N260 million in 2005 and its population is 260,000, GDP per capita is", opts: ["1000", "260", "0.001", "259740"], a: 0 },
+      { q: "If GNP per capita at constant prices for a microstate is US$555 (2004) and US$560 (2005), the real economic growth from 2004 to 2005 is", opts: ["5%", "0.901%", "0.090%", "0.991%"], a: 1 },
+      { q: "Economic growth from current year (c) to previous year (p) is given by", opts: ["[(GDPc – GDPp)/ GDPp]×100", "[(GDPc – GDPp)× GDPp]×100", "GNPc-(GDPp×100)", "[GDPp – GDPc]×100"], a: 0 },
+      { q: "All of the following are high-income countries EXCEPT", opts: ["Singapore", "U.K", "Japan", "South Africa"], a: 3 },
+      { q: "Which of the following countries is NOT a low-income country?", opts: ["Indonesia", "India", "Malaysia", "Nigeria"], a: 2 },
+      { q: "Economic development refers to", opts: ["Economic growth", "Economic growth plus changes in output distribution and economic structure", "Improvement in the well-being of the urban population", "Sustainable increases in Gross National Product"], a: 1 },
+      { q: "If GNP for a small country is 200 million euros in 2001 and its population is 890, GNP per capita is", opts: ["2000 - 890", "200 / 890", "200,000,000 / 890", "200"], a: 2 },
+      { q: "Which of the following characteristics is most likely found in developing countries?", opts: ["High population growth rates", "A large number of people living in poverty", "Very traditional methods of agricultural production", "All of the above"], a: 3 },
+      { q: "Which of the following could NOT be considered a major economic system?", opts: ["Capitalism", "Communism", "Socialism", "Physical Quality of Life Index"], a: 3 },
+      { q: "Which of the following is an example of 'portfolio investment'?", opts: ["An American places funds in a savings account in Nigeria", "Tokyo Bank of Japan buys Union Bank of Nigeria", "Saturn Corp. (owned by GM) builds a new factory in Abuja", "An American puts $10,000 into a money market fund"], a: 0 }
+    ]
+  },
+  {
+    id: 10,
+    title: "Macroeconomics of Developing and Transitional Economies",
+    blurb: "The goals of developing economies and the process of transition from planned to market systems.",
+    outcomes: [
+      "Discuss the macroeconomics of developing and transitional economies",
+      "Discuss the differing goals of developed and developing economies",
+      "Explain what is meant by transitional economies",
+      "Explain the indicators of transitional economies"
+    ],
+    notes: `A developing economy has a low GDP per capita and a relatively underdeveloped market structure, and has not recently had an alternative, developed economic system. A transitional economy, by contrast, previously had an alternative, developed (typically socialist/centrally-planned) economic system and is in the process of shifting to a market system.
+
+The main indicators of the transition process are: Liberalization — allowing prices to be determined freely by markets and lowering trade barriers; Macroeconomic stabilization — bringing inflation under control through disciplined fiscal and monetary policy, and achieving a sustainable balance of payments; Restructuring and privatization — building a viable financial sector and transferring state enterprises into private hands so they can compete in free markets; and Legal and institutional reforms — redefining the state's role, establishing rule of law, and introducing competition policy.
+
+The European Bank for Reconstruction and Development (EBRD) is closely associated with supporting transition economies, especially in Central and Eastern Europe.
+
+The existence of private property rights is one of the most basic elements of a market economy, and its implementation is a core indicator of the transition process.`,
+    saqs: [
+      { q: "Briefly discuss the macroeconomics of developing and transitional economies.", a: "A developing economy has low GDP per capita and an underdeveloped market structure, without having previously operated under an alternative developed economic system. A transitional economy previously operated under an alternative developed system (typically centrally planned/socialist) and is moving toward a market system. Macroeconomic policy in this context applies the abstract principles of positive economics within a country's specific institutional structure to pursue development goals." },
+      { q: "Explain four indicators of a transitional economy.", a: "(1) Liberalization — allowing prices to be market-determined and lowering trade barriers. (2) Macroeconomic stabilization — controlling inflation through fiscal and monetary discipline and achieving sustainable balance of payments. (3) Restructuring and privatization — building a viable financial sector and transferring state enterprise ownership to private hands. (4) Legal and institutional reforms — redefining the state's role, establishing rule of law, and introducing competition policy." }
+    ],
+    mcqs: [
+      { q: "Transitional economies means", opts: ["A change from a capitalistic economy to socialism", "Structural transformation", "A movement of an economy from government dominance to private ownership of property and a market-oriented economy", "None of the above"], a: 2 },
+      { q: "The following are basic ingredients of the transitional process EXCEPT;", opts: ["Economic liberalization", "Privatization of government-owned ventures", "Nationalization of private properties and businesses", "Legal and institutional reforms"], a: 2 },
+      { q: "Which of these is the odd one out regarding developing and transitional economies?", opts: ["Private ownership of means of production and distribution", "Market-driven economy", "Restructuring of legal and other institutional arrangements", "Nationalization"], a: 3 },
+      { q: "Which of the following countries is NOT typically classed a transitional economy?", opts: ["Indonesia", "India", "Malaysia", "Benin Republic"], a: 3 },
+      { q: "The main goal of every developing and transitional economy is;", opts: ["Attainment of economic growth and eventual economic development", "Economic growth alone", "Improvement in the well-being of the urban population only", "None of the above"], a: 0 },
+      { q: "One of the following economists is highly associated with the study of transition economies.", opts: ["Adolf Wagner", "Isaac Jones", "Edgar Feige", "Robert Miller"], a: 2 },
+      { q: "EBRD represents", opts: ["Economic Bureau of Reconstruction and Development", "European Bank for Reconstruction and Development", "European Bureau of Restructuring and Development", "None of the above"], a: 1 },
+      { q: "The existence of private property rights is a most basic element of a market economy; its implementation is a basic indicator of....................................", opts: ["Economic Transformation", "Transition Process", "Economic development", "Economic restructuring"], a: 1 },
+      { q: "An economy which is changing from a centrally planned economy to a market economy is a", opts: ["Pseudo Economy", "Transition Economy", "Transformed Economy", "None of the above"], a: 1 },
+      { q: "Transition economy process includes a movement from a controlled economy to a liberalized economy with...............................", opts: ["Changes in institutional base", "Changes from social to market-determined economy", "Changes in all restrictions that hinder market operations", "All of the above"], a: 3 }
+    ]
+  }
+];
+
+// Build a flat 100-question exam pool (used for the full mock exam)
+const ALL_QUESTIONS = SESSIONS.flatMap(s =>
+  s.mcqs.map((m, i) => ({ ...m, session: s.id, sessionTitle: s.title, qid: `${s.id}-${i}` }))
+);
+
+</script>
+<script>
+/* ============ STORAGE ============ */
+async function getStore(key, fallback){
+  try{
+    const r = await window.storage.get(key);
+    return r ? JSON.parse(r.value) : fallback;
+  }catch(e){ return fallback; }
+}
+async function setStore(key, val){
+  try{ await window.storage.set(key, JSON.stringify(val)); }catch(e){ console.error('storage set failed', e); }
+}
+
+let PROGRESS = {}; // { sessionId: true }
+let HISTORY = [];  // [{id, scope, score, total, pct, date}]
+
+async function loadState(){
+  PROGRESS = await getStore('progress', {});
+  HISTORY = await getStore('history', []);
+  renderHome();
+  renderHistory();
+}
+
+/* ============ DATE ============ */
+document.getElementById('dateNow').textContent = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+
+/* ============ NAVIGATION ============ */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  window.scrollTo(0,0);
+}
+
+/* ============ HOME RENDER ============ */
+function renderHome(){
+  const sessionsRead = Object.keys(PROGRESS).filter(k=>PROGRESS[k]).length;
+  document.getElementById('statSessions').textContent = `${sessionsRead}/10`;
+
+  const allAttempts = HISTORY.filter(h=>h.scope==='all');
+  const best = allAttempts.length ? Math.max(...allAttempts.map(a=>a.score)) : null;
+  document.getElementById('statBest').textContent = best!==null ? `${best}/100` : '—';
+  document.getElementById('statAttempts').textContent = HISTORY.length;
+
+  const lastFull = allAttempts[allAttempts.length-1];
+  document.getElementById('fullExamLast').innerHTML = lastFull
+    ? `Last attempt: <b>${lastFull.score}/${lastFull.total} (${lastFull.pct}%)</b> on ${lastFull.date}`
+    : `Last attempt: <b>None yet</b>`;
+
+  const list = document.getElementById('sessionList');
+  list.innerHTML = '';
+  SESSIONS.forEach(s=>{
+    const read = !!PROGRESS[s.id];
+    const attempts = HISTORY.filter(h=>h.scope==='session-'+s.id);
+    const bestS = attempts.length ? Math.max(...attempts.map(a=>a.score)) : null;
+
+    const card = document.createElement('div');
+    card.className = 'session-card';
+    card.id = 'card-'+s.id;
+    card.innerHTML = `
+      <div class="session-head" onclick="toggleSession(${s.id})">
+        <div class="session-num">${String(s.id).padStart(2,'0')}</div>
+        <div class="session-titles">
+          <h3>${s.title}</h3>
+          <p>${s.blurb}</p>
+          <div class="session-meta">
+            <span class="pill ${read?'done':''}">${read? '✓ Studied' : 'Not yet studied'}</span>
+            <span class="pill">10 MCQs</span>
+            ${bestS!==null ? `<span class="pill done">Best ${bestS}/10</span>` : ''}
+          </div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="session-body">
+        <div class="rule-title" style="margin-top:16px;"><span>Learning outcomes</span></div>
+        <ul class="outcomes">${s.outcomes.map(o=>`<li>${o}</li>`).join('')}</ul>
+
+        <div class="rule-title"><span>Session notes</span></div>
+        <div class="notes-block">${s.notes}</div>
+
+        <div class="rule-title"><span>Self-assessment</span></div>
+        ${s.saqs.map((sq,i)=>`
+          <div class="saq" id="saq-${s.id}-${i}">
+            <div class="q">${sq.q}</div>
+            <div class="a">${sq.a}</div>
+            <span class="toggle" onclick="toggleSaq(${s.id},${i})">Show answer</span>
+          </div>
+        `).join('')}
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="markRead(${s.id}, event)">${read? 'Mark as not studied':'Mark as studied'}</button>
+          <button class="btn btn-gold" onclick="startExam('session-${s.id}')">Practice — 10Q</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function toggleSession(id){
+  const el = document.getElementById('card-'+id);
+  el.classList.toggle('open');
+}
+function toggleSaq(sid,i){
+  const el = document.getElementById(`saq-${sid}-${i}`);
+  el.classList.toggle('open');
+  const t = el.querySelector('.toggle');
+  t.textContent = el.classList.contains('open') ? 'Hide answer' : 'Show answer';
+}
+async function markRead(id, ev){
+  ev.stopPropagation();
+  PROGRESS[id] = !PROGRESS[id];
+  await setStore('progress', PROGRESS);
+  renderHome();
+  // reopen the card after re-render
+  document.getElementById('card-'+id).classList.add('open');
+}
+
+/* ============ HISTORY RENDER ============ */
+function renderHistory(){
+  const el = document.getElementById('historyList');
+  if(!HISTORY.length){
+    el.innerHTML = `<div class="empty-note">No attempts logged yet. Sit a practice quiz or the full mock exam from Home to begin your record.</div>`;
+    return;
+  }
+  el.innerHTML = [...HISTORY].reverse().map(h=>{
+    const label = h.scope==='all' ? 'Full 100Q Mock Exam' : 'Session ' + h.scope.split('-')[1] + ' Practice';
+    return `
+      <div class="ledger-row">
+        <div>
+          <div class="lbl">${label}</div>
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${h.date}</div>
+        </div>
+        <div class="val">${h.score}/${h.total}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============ CALCULATOR ============ */
+function runCalc(){
+  const dy = parseFloat(document.getElementById('calcDY').value);
+  const dc = parseFloat(document.getElementById('calcDC').value);
+  const out = document.getElementById('calcOut');
+  if(isNaN(dy) || isNaN(dc) || dy===0){
+    out.style.display='block';
+    out.textContent = 'Enter both values (Δ Disposable Income must not be zero).';
+    return;
+  }
+  const mpc = dc/dy;
+  const mps = 1-mpc;
+  out.style.display='block';
+  out.innerHTML = `MPC = ${mpc.toFixed(3)} &nbsp;·&nbsp; MPS = ${mps.toFixed(3)}`;
+}
+
+/* ============ QUIZ ENGINE ============ */
+let quizState = null;
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function startExam(scope){
+  let pool, title, seconds;
+  if(scope==='all'){
+    pool = shuffle(ALL_QUESTIONS);
+    title = 'Full Mock Exam';
+    seconds = 45*60;
+  }else{
+    const sid = parseInt(scope.split('-')[1]);
+    const s = SESSIONS.find(x=>x.id===sid);
+    pool = s.mcqs.map((m,i)=>({...m, session:s.id, sessionTitle:s.title, qid:`${s.id}-${i}`}));
+    title = 'Session ' + sid + ' Practice';
+    seconds = 12*60;
+  }
+  quizState = {
+    scope, title, pool,
+    answers: new Array(pool.length).fill(null),
+    idx: 0,
+    secondsLeft: seconds,
+    timerId: null
+  };
+  document.getElementById('quizTitle').textContent = title;
+  document.getElementById('quizScreen').classList.add('active');
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer(){
+  updateTimerDisplay();
+  quizState.timerId = setInterval(()=>{
+    quizState.secondsLeft--;
+    updateTimerDisplay();
+    if(quizState.secondsLeft<=0){
+      clearInterval(quizState.timerId);
+      finishExam();
+    }
+  },1000);
+}
+function updateTimerDisplay(){
+  const m = Math.floor(quizState.secondsLeft/60);
+  const s = quizState.secondsLeft%60;
+  const el = document.getElementById('quizTimer');
+  el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('low', quizState.secondsLeft < 60);
+}
+
+function renderQuestion(){
+  const {pool, idx, answers} = quizState;
+  const q = pool[idx];
+  document.getElementById('progressFill').style.width = `${((idx+1)/pool.length)*100}%`;
+  const body = document.getElementById('quizBody');
+  body.innerHTML = `
+    <div class="qcounter">QUESTION ${idx+1} OF ${pool.length}${q.sessionTitle && quizState.scope==='all' ? ' · SESSION '+q.session : ''}</div>
+    <div class="qtext">${q.q}</div>
+    <div id="optsWrap"></div>
+  `;
+  const wrap = document.getElementById('optsWrap');
+  q.opts.forEach((opt,i)=>{
+    const div = document.createElement('div');
+    div.className = 'opt' + (answers[idx]===i ? ' selected':'');
+    div.innerHTML = `<div class="letter">${String.fromCharCode(65+i)}</div><div class="txt">${opt}</div>`;
+    div.onclick = ()=>selectOpt(i);
+    wrap.appendChild(div);
+  });
+  document.getElementById('prevBtn').disabled = idx===0;
+  document.getElementById('nextBtn').textContent = idx===pool.length-1 ? 'Finish' : 'Next';
+}
+
+function selectOpt(i){
+  quizState.answers[quizState.idx] = i;
+  renderQuestion();
+}
+function nextQ(){
+  if(quizState.idx < quizState.pool.length-1){
+    quizState.idx++;
+    renderQuestion();
+  } else {
+    finishExam();
+  }
+}
+function prevQ(){
+  if(quizState.idx>0){ quizState.idx--; renderQuestion(); }
+}
+function confirmExitQuiz(){
+  if(confirm('Leave this attempt? Your progress on this attempt will not be saved.')){
+    clearInterval(quizState.timerId);
+    document.getElementById('quizScreen').classList.remove('active');
+    quizState = null;
+  }
+}
+
+async function finishExam(){
+  clearInterval(quizState.timerId);
+  const {pool, answers, scope} = quizState;
+  let score = 0;
+  pool.forEach((q,i)=>{ if(answers[i]===q.a) score++; });
+  const total = pool.length;
+  const pct = Math.round((score/total)*100);
+  const date = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) + ' ' +
+               new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  HISTORY.push({ scope, score, total, pct, date });
+  await setStore('history', HISTORY);
+
+  renderResults(score, total, pct, pool, answers);
+}
+
+function renderResults(score, total, pct, pool, answers){
+  const body = document.getElementById('quizBody');
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('quizTimer').textContent = 'Done';
+  document.getElementById('prevBtn').style.display='none';
+  document.getElementById('nextBtn').textContent = 'Close';
+  document.getElementById('nextBtn').onclick = closeResults;
+
+  const pass = pct>=50;
+  let html = `
+    <div class="result-hero">
+      <div class="score">${score}<span style="font-size:26px;color:var(--ink-soft);">/${total}</span></div>
+      <div class="frac">${pct}% correct</div>
+      <div class="verdict ${pass?'pass':'fail'}">${pass? 'Solid attempt' : 'Keep revising'}</div>
+    </div>
+  `;
+  pool.forEach((q,i)=>{
+    const yours = answers[i];
+    const correct = q.a;
+    const isRight = yours===correct;
+    html += `
+      <div class="review-item">
+        <span class="tag">SESSION ${q.session}${q.sessionTitle?' · '+q.sessionTitle:''}</span>
+        <div class="rq">${i+1}. ${q.q}</div>
+        <div class="ra ${isRight?'correct':'wrong'}">Your answer: ${yours!==null ? String.fromCharCode(65+yours)+'. '+q.opts[yours] : '— skipped —'}</div>
+        ${!isRight ? `<div class="ra correct">Correct: ${String.fromCharCode(65+correct)}. ${q.opts[correct]}</div>` : ''}
+      </div>
+    `;
+  });
+  body.innerHTML = html;
+  document.querySelector('.quiz-bottom').style.display='flex';
+}
+
+function closeResults(){
+  document.getElementById('quizScreen').classList.remove('active');
+  document.getElementById('prevBtn').style.display='inline-flex';
+  document.getElementById('nextBtn').onclick = nextQ;
+  quizState = null;
+  loadState();
+}
+
+/* ============ INIT ============ */
+loadState();
+</script>
+</body>
+</html>
